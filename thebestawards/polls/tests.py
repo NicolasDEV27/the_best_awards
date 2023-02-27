@@ -55,6 +55,24 @@ class QuestionIndexViewTests(TestCase):
         future_Q2 = self.question.pub_date = time
         self.assertNotIn(future_Q1, future_Q2, response.context["latest_question_list"])
 
+def create_question(question_text, days = 0, hours = 0, minutes = 0, seconds = 0):    
+        time = timezone.now() + datetime.timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        return Question.objects.create(question_text=question_text, pub_date=time)
+
+class QuestionDetailViewTests(TestCase):
+
+    def test_future_question(self):
+        future_Q = create_question(question_text="Future Q", days=30)
+        url = reverse("polls:detail", args=(future_Q.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_past_question(self):
+        past_Q = create_question(question_text="Past Q", days=-30)
+        url = reverse("polls:detail", args=(past_Q.id,))
+        response = self.client.get(url)
+        self.assertContains(response, past_Q.question_text)
+
     
         
         
